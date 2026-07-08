@@ -1,32 +1,23 @@
 # ⭐ LumenTip
 
-A tiny tip jar that lives on the [Stellar](https://stellar.org) testnet. Connect your Freighter wallet, pick an amount (coffee, pizza, or rocket fuel), leave a note — and the tip lands on-chain in a few seconds, with the note stored right in the transaction memo.
+My little tip jar on the Stellar testnet, built for Level 1 (White Belt) of the Rise In × Stellar *Journey to Mastery* challenge.
+
+You connect your Freighter wallet, pick an amount — coffee, pizza or rocket fuel — maybe type a short note, and hit send. A few seconds later the tip is on-chain and your note shows up in the "Recent supporters" feed, because it travels inside the transaction memo itself.
 
 **Live demo:** <https://0xzenux.github.io/lumentip/>
 
-Built for Level 1 (White Belt) of the Rise In × Stellar *Journey to Mastery* challenge.
+## What's inside
 
-## What it does
+- Connect / disconnect Freighter, and the session survives a page refresh
+- Your XLM balance, live — with a one-click Friendbot top-up when the wallet is empty
+- Preset amounts, a custom amount field, and an optional on-chain note. Stellar caps text memos at 28 *bytes* (not characters), so the counter enforces that while you type
+- Honest transaction feedback: waiting for your signature → submitting → success with a stellar.expert link. Cancelling the signature or running out of XLM gets you a friendly message instead of a stack trace
+- A "Recent supporters" feed read straight from Horizon, memos included
+- Confetti when the tip goes through. Non-negotiable.
 
-- 🔌 Connect / disconnect the Freighter browser extension — the session survives page refreshes
-- 💰 Live XLM balance, with a one-click Friendbot top-up when the wallet is empty or running low
-- ☕ Preset tip amounts, a custom amount field, and an optional note that goes on-chain as a text memo (the 28-byte limit is enforced as you type)
-- 📡 Full transaction feedback: signing → submitting → success with a stellar.expert link, or a friendly error (cancelled signature, not enough XLM, wrong network…)
-- 🙌 A "Recent supporters" feed read straight from Horizon, memos included
-- 🎉 Confetti. Obviously.
+## Running it locally
 
-## Challenge checklist
-
-| Requirement | Where to find it |
-| --- | --- |
-| Wallet connection (connect + disconnect) | header button → wallet card |
-| Balance display | wallet card, refreshes after every tip |
-| Send an XLM transaction | tip form → Freighter signs → Horizon submits |
-| Transaction feedback | live status panel + tx hash linked to stellar.expert |
-
-## Run it locally
-
-You'll need Node 20+ and the [Freighter](https://www.freighter.app/) extension with its network set to **Testnet**.
+Node 20+ and the [Freighter](https://www.freighter.app/) extension with its network set to **Testnet** are all you need.
 
 ```bash
 git clone https://github.com/0xZenux/lumentip.git
@@ -35,23 +26,13 @@ npm install
 npm run dev
 ```
 
-Open <http://localhost:3000> and connect. If your wallet is empty, hit **Get test XLM** — Friendbot sends you 10,000 testnet lumens.
+Open <http://localhost:3000> and connect. If the wallet is empty, hit **Get test XLM** — Friendbot tops you up with 10,000 testnet lumens.
 
-Tips go to the jar account:
-[`GCZO…LCY3`](https://stellar.expert/explorer/testnet/account/GCZOMCBJCCEKETJYDGXYG44ESN6OZ2J72BZ5SCHFIAGEQX65RVWFLCY3)
+Tips land in the jar account: [`GCZO…LCY3`](https://stellar.expert/explorer/testnet/account/GCZOMCBJCCEKETJYDGXYG44ESN6OZ2J72BZ5SCHFIAGEQX65RVWFLCY3). If you fork this and want the tips for yourself, swap out `CREATOR_ADDRESS` (and the profile bits) in [`lib/config.ts`](lib/config.ts).
 
-Want the tips to land in *your* account instead? Change `CREATOR_ADDRESS` (and the profile bits) in [`lib/config.ts`](lib/config.ts).
+## Notes on how it works
 
-## How it's put together
-
-- **Next.js 16 + TypeScript + Tailwind 4**, fully client-side and statically exported
-- **@stellar/freighter-api** for connecting and signing, wrapped in [`lib/freighter.ts`](lib/freighter.ts)
-- **@stellar/stellar-sdk** builds and submits the payment; reads (balance, feed) hit Horizon's REST API directly
-- The supporters feed uses `join=transactions` on the payments endpoint, so memos come back in a single request
-- Payments use open-ended timebounds — a visitor whose system clock is a few minutes off would otherwise get their tx rejected with `tx_too_late` (found that one the hard way)
-
-## Screenshots
-
-| Wallet connected | Balance & funding | Tip sent |
-| --- | --- | --- |
-| ![wallet connected](docs/screenshots/wallet-connected.png) | ![balance](docs/screenshots/balance.png) | ![tip success](docs/screenshots/tip-success.png) |
+- Next.js 16 + TypeScript + Tailwind 4, fully client-side and statically exported — that's how it fits on GitHub Pages
+- [`lib/freighter.ts`](lib/freighter.ts) wraps `@stellar/freighter-api` for connecting and signing; [`lib/stellar.ts`](lib/stellar.ts) builds and submits the payment with `@stellar/stellar-sdk`, while plain reads (balance, feed) just hit Horizon's REST API
+- The feed uses `join=transactions` on the payments endpoint, so memos come back in a single request instead of one extra call per record
+- Payments are built with open-ended timebounds. My machine's clock turned out to be ~40 minutes off and every transaction died with `tx_too_late` before I figured out why — and if it happened to me, it would happen to visitors too
