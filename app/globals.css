@@ -1,26 +1,65 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0c1b;
+  --foreground: #e9eaf4;
+  --panel: #12152c;
+  --line: #262b52;
+  --muted: #9aa0c3;
+  --accent: #f5b83d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background:
+    radial-gradient(ellipse 60% 40% at 70% -10%, rgba(93, 78, 245, 0.16), transparent),
+    radial-gradient(ellipse 50% 35% at 15% 10%, rgba(245, 184, 61, 0.07), transparent),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* a few hand-placed stars, because a tip jar in space deserves them */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.stars::before {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.45;
+  box-shadow:
+    12vw 18vh 0 0 #fff,
+    25vw 8vh 0 0 #cfd4ff,
+    38vw 30vh 0 0 #fff,
+    52vw 12vh 0 0 #ffe9b8,
+    66vw 26vh 0 0 #fff,
+    78vw 6vh 0 0 #cfd4ff,
+    88vw 21vh 0 0 #fff,
+    8vw 44vh 0 0 #cfd4ff,
+    30vw 56vh 0 0 #fff,
+    58vw 48vh 0 0 #ffe9b8,
+    72vw 61vh 0 0 #fff,
+    90vw 50vh 0 0 #cfd4ff,
+    15vw 76vh 0 0 #fff,
+    45vw 83vh 0 0 #cfd4ff,
+    83vw 78vh 0 0 #fff;
 }

@@ -1,65 +1,142 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import WalletCard from "@/components/WalletCard";
+import { CREATOR, CREATOR_ADDRESS, accountLink } from "@/lib/config";
+import { connect, restoreSession } from "@/lib/freighter";
+import { fundWithFriendbot, getXlmBalance } from "@/lib/stellar";
+
+type Wallet = { address: string; network: string };
 
 export default function Home() {
+  const [wallet, setWallet] = useState<Wallet | null>(null);
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [funding, setFunding] = useState(false);
+
+  const refreshBalance = useCallback(async (address: string) => {
+    setBalanceLoading(true);
+    try {
+      setBalance(await getXlmBalance(address));
+    } catch {
+      setBalance(null);
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, []);
+
+  // pick the session back up if the site was already authorized
+  useEffect(() => {
+    restoreSession().then((s) => s && setWallet(s));
+  }, []);
+
+  useEffect(() => {
+    if (wallet) refreshBalance(wallet.address);
+  }, [wallet, refreshBalance]);
+
+  async function handleConnect() {
+    setConnecting(true);
+    setConnectError(null);
+    try {
+      setWallet(await connect());
+    } catch (err) {
+      setConnectError(
+        err instanceof Error ? err.message : "Could not connect."
+      );
+    } finally {
+      setConnecting(false);
+    }
+  }
+
+  function handleDisconnect() {
+    // Freighter has no programmatic disconnect; dropping local state is the way
+    setWallet(null);
+    setBalance(null);
+    setConnectError(null);
+  }
+
+  async function handleFund() {
+    if (!wallet) return;
+    setFunding(true);
+    try {
+      await fundWithFriendbot(wallet.address);
+    } catch {
+      // friendbot mostly refuses when the account is already funded —
+      // refreshing below sorts out either case
+    } finally {
+      await refreshBalance(wallet.address);
+      setFunding(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="relative z-10 mx-auto w-full max-w-xl px-4 pb-16">
+      <header className="flex items-center justify-between py-6">
+        <div className="text-lg font-semibold tracking-tight">
+          ⭐ Lumen<span className="text-accent">Tip</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        {!wallet && (
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-black transition hover:brightness-110 disabled:opacity-60"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
+            {connecting ? "Connecting…" : "Connect Freighter"}
+          </button>
+        )}
+      </header>
+
+      {connectError === "FREIGHTER_MISSING" ? (
+        <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          Freighter isn&apos;t installed.{" "}
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            href="https://www.freighter.app/"
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
+            className="underline"
           >
-            Documentation
-          </a>
+            Grab the extension
+          </a>{" "}
+          and refresh this page.
         </div>
-      </main>
+      ) : connectError ? (
+        <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {connectError}
+        </div>
+      ) : null}
+
+      {wallet && (
+        <div className="mb-6">
+          <WalletCard
+            address={wallet.address}
+            network={wallet.network}
+            balance={balance}
+            balanceLoading={balanceLoading}
+            funding={funding}
+            onFund={handleFund}
+            onDisconnect={handleDisconnect}
+          />
+        </div>
+      )}
+
+      <section className="rounded-2xl border border-line bg-panel p-6 text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border border-line bg-background text-4xl">
+          {CREATOR.avatar}
+        </div>
+        <h1 className="mt-4 text-2xl font-bold">{CREATOR.name}</h1>
+        <p className="text-sm text-muted">{CREATOR.handle}</p>
+        <p className="mt-2 text-sm">{CREATOR.tagline}</p>
+        <a
+          href={accountLink(CREATOR_ADDRESS)}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-block text-xs text-muted transition-colors hover:text-foreground"
+        >
+          view the jar on stellar.expert ↗
+        </a>
+      </section>
     </div>
   );
 }
