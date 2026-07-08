@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import RecentTips from "@/components/RecentTips";
 import TipForm from "@/components/TipForm";
 import WalletCard from "@/components/WalletCard";
 import { CREATOR, CREATOR_ADDRESS, accountLink } from "@/lib/config";
@@ -16,6 +17,7 @@ export default function Home() {
   const [balance, setBalance] = useState<string | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [funding, setFunding] = useState(false);
+  const [feedKey, setFeedKey] = useState(0);
 
   const refreshBalance = useCallback(async (address: string) => {
     setBalanceLoading(true);
@@ -73,8 +75,9 @@ export default function Home() {
   }
 
   function handleTipSent() {
-    // balance changed, show it right away
+    // balance changed and there's a fresh tip to show
     if (wallet) refreshBalance(wallet.address);
+    setFeedKey((k) => k + 1);
   }
 
   const networkOk =
@@ -152,6 +155,8 @@ export default function Home() {
         networkOk={networkOk}
         onTipSent={handleTipSent}
       />
+
+      <RecentTips refreshKey={feedKey} />
     </div>
   );
 }
