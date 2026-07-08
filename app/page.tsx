@@ -157,6 +157,23 @@ export default function Home() {
       />
 
       <RecentTips refreshKey={feedKey} />
+
+      <footer className="mt-10 text-center text-xs text-muted">
+        <p>
+          runs on the Stellar <span className="text-foreground">testnet</span>{" "}
+          · network fee ≈ 0.00001 XLM
+        </p>
+        <p className="mt-1">
+          <a
+            href="https://github.com/0xZenux/lumentip"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-foreground"
+          >
+            source on GitHub ↗
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

@@ -49,6 +49,9 @@ export default function TipForm({ address, networkOk, onTipSent }: Props) {
       setStatus({ phase: "success", hash });
       setMessage("");
       onTipSent();
+      // the fun part
+      const confetti = (await import("canvas-confetti")).default;
+      confetti({ particleCount: 120, spread: 75, origin: { y: 0.7 } });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong.";
       setStatus({
