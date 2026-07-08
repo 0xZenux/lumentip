@@ -4,6 +4,7 @@ import {
   Horizon,
   Memo,
   Operation,
+  TimeoutInfinite,
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
 import {
@@ -61,7 +62,10 @@ export async function sendTip(
         amount,
       })
     )
-    .setTimeout(120);
+    // no expiry on purpose: timebounds are computed from the visitor's clock,
+    // and a clock that's a few minutes off gets the tx rejected as tx_too_late.
+    // we sign and submit immediately, so an open-ended window is fine here.
+    .setTimeout(TimeoutInfinite);
 
   const msg = message.trim();
   if (msg) builder.addMemo(Memo.text(msg));
