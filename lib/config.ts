@@ -3,7 +3,7 @@ export const CREATOR_ADDRESS =
   "GCZOMCBJCCEKETJYDGXYG44ESN6OZ2J72BZ5SCHFIAGEQX65RVWFLCY3";
 
 export const CREATOR = {
-  name: "Soheyl",
+  name: "Zenux",
   handle: "@0xZenux",
   tagline: "Building on Stellar, one belt at a time 🥋",
   avatar: "⭐",
