@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⭐ LumenTip
 
-## Getting Started
+A tiny tip jar that lives on the [Stellar](https://stellar.org) testnet. Connect your Freighter wallet, pick an amount (coffee, pizza, or rocket fuel), leave a note — and the tip lands on-chain in a few seconds, with the note stored right in the transaction memo.
 
-First, run the development server:
+**Live demo:** <https://0xzenux.github.io/lumentip/>
+
+Built for Level 1 (White Belt) of the Rise In × Stellar *Journey to Mastery* challenge.
+
+## What it does
+
+- 🔌 Connect / disconnect the Freighter browser extension — the session survives page refreshes
+- 💰 Live XLM balance, with a one-click Friendbot top-up when the wallet is empty or running low
+- ☕ Preset tip amounts, a custom amount field, and an optional note that goes on-chain as a text memo (the 28-byte limit is enforced as you type)
+- 📡 Full transaction feedback: signing → submitting → success with a stellar.expert link, or a friendly error (cancelled signature, not enough XLM, wrong network…)
+- 🙌 A "Recent supporters" feed read straight from Horizon, memos included
+- 🎉 Confetti. Obviously.
+
+## Challenge checklist
+
+| Requirement | Where to find it |
+| --- | --- |
+| Wallet connection (connect + disconnect) | header button → wallet card |
+| Balance display | wallet card, refreshes after every tip |
+| Send an XLM transaction | tip form → Freighter signs → Horizon submits |
+| Transaction feedback | live status panel + tx hash linked to stellar.expert |
+
+## Run it locally
+
+You'll need Node 20+ and the [Freighter](https://www.freighter.app/) extension with its network set to **Testnet**.
 
 ```bash
+git clone https://github.com/0xZenux/lumentip.git
+cd lumentip
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000> and connect. If your wallet is empty, hit **Get test XLM** — Friendbot sends you 10,000 testnet lumens.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Tips go to the jar account:
+[`GCZO…LCY3`](https://stellar.expert/explorer/testnet/account/GCZOMCBJCCEKETJYDGXYG44ESN6OZ2J72BZ5SCHFIAGEQX65RVWFLCY3)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Want the tips to land in *your* account instead? Change `CREATOR_ADDRESS` (and the profile bits) in [`lib/config.ts`](lib/config.ts).
 
-## Learn More
+## How it's put together
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js 16 + TypeScript + Tailwind 4**, fully client-side and statically exported
+- **@stellar/freighter-api** for connecting and signing, wrapped in [`lib/freighter.ts`](lib/freighter.ts)
+- **@stellar/stellar-sdk** builds and submits the payment; reads (balance, feed) hit Horizon's REST API directly
+- The supporters feed uses `join=transactions` on the payments endpoint, so memos come back in a single request
+- Payments use open-ended timebounds — a visitor whose system clock is a few minutes off would otherwise get their tx rejected with `tx_too_late` (found that one the hard way)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Screenshots
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Wallet connected | Balance & funding | Tip sent |
+| --- | --- | --- |
+| ![wallet connected](docs/screenshots/wallet-connected.png) | ![balance](docs/screenshots/balance.png) | ![tip success](docs/screenshots/tip-success.png) |
