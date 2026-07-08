@@ -45,7 +45,8 @@ export async function fundWithFriendbot(address: string): Promise<void> {
 export async function sendTip(
   from: string,
   amount: string,
-  message: string
+  message: string,
+  onProgress?: (step: "sign" | "submit") => void
 ): Promise<string> {
   const account = await server.loadAccount(from);
 
@@ -66,7 +67,9 @@ export async function sendTip(
   if (msg) builder.addMemo(Memo.text(msg));
 
   const tx = builder.build();
+  onProgress?.("sign");
   const signedXdr = await signTx(tx.toXDR(), from);
+  onProgress?.("submit");
   const signed = TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE);
 
   try {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import TipForm from "@/components/TipForm";
 import WalletCard from "@/components/WalletCard";
 import { CREATOR, CREATOR_ADDRESS, accountLink } from "@/lib/config";
 import { connect, restoreSession } from "@/lib/freighter";
@@ -71,6 +72,14 @@ export default function Home() {
     }
   }
 
+  function handleTipSent() {
+    // balance changed, show it right away
+    if (wallet) refreshBalance(wallet.address);
+  }
+
+  const networkOk =
+    !wallet || wallet.network === "" || wallet.network === "TESTNET";
+
   return (
     <div className="relative z-10 mx-auto w-full max-w-xl px-4 pb-16">
       <header className="flex items-center justify-between py-6">
@@ -137,6 +146,12 @@ export default function Home() {
           view the jar on stellar.expert ↗
         </a>
       </section>
+
+      <TipForm
+        address={wallet?.address ?? null}
+        networkOk={networkOk}
+        onTipSent={handleTipSent}
+      />
     </div>
   );
 }
